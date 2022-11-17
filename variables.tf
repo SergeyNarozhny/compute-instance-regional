@@ -61,3 +61,16 @@ variable "boot_disk_size" {
     type = number
     default = 20  
 }
+
+variable "need_attached_disk" {
+    type = bool
+    default = false
+}
+variable "attached_disk" {
+    type = object({
+        name = string
+        type = string
+        size = string
+    })
+    default = null
+}

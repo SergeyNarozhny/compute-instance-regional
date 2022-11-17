@@ -39,8 +39,35 @@ resource "random_shuffle" "instances_zones" {
   result_count  = 1
 }
 
-# VAULT nodes
-resource "google_compute_instance" "vault_instances" {
+# DISKS with attachments
+resource "google_compute_disk" "nodes_disk" {
+  for_each = {
+      for el in local.instance_regions : el.key => {
+          region    = el.region.name
+          zone      = random_shuffle.instances_zones[el.key].result[0] # 0 because result_count returns 1 el-array
+      }
+      if var.need_attached_disk
+  }
+  name = var.attached_disk.name
+  type = var.attached_disk.type
+  zone = "${each.value.region}-${each.value.zone}"
+  size = var.attached_disk.size
+}
+resource "google_compute_attached_disk" "disks_attachment" {
+  for_each = {
+      for el in local.instance_regions : el.key => {
+          key       = el.key
+          region    = el.region.name
+          zone      = random_shuffle.instances_zones[el.key].result[0] # 0 because result_count returns 1 el-array
+      }
+      if var.need_attached_disk
+  }
+  disk     = google_compute_disk.nodes_disk[each.value.key].self_link
+  instance = google_compute_instance.instances[each.value.key].self_link
+}
+
+# INSTANCES
+resource "google_compute_instance" "instances" {
   for_each = {
     for el in local.instance_regions : el.key => {
       region        = el.region.name
@@ -71,5 +98,9 @@ resource "google_compute_instance" "vault_instances" {
   labels = {
     app = local.name
     env = local.env
+  }
+
+  lifecycle {
+    ignore_changes = [attached_disk]
   }
 }

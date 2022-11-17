@@ -18,14 +18,13 @@ module "compute_instance_regional" {
   project = "gl"
   name = "vault"
   domain = "test.mx"
-  labels = {
-    app = "vault"
-  }
-  label_role = null
   instance_count = 3
 
   machine_type = "e2-highcpu-2"
   tags = ["vault", "to-vault"]
+  labels = {
+    app = "vault"
+  }
 }
 ```
 ### Example 2 with disks
@@ -37,13 +36,13 @@ module "compute_instance_regional" {
   project = "gl"
   name = "vault"
   domain = "test.mx"
-  labels = {
-    app = "vault"
-  }
   instance_count = 3
 
   machine_type = "e2-highcpu-2"
   tags = ["vault", "to-vault"]
+  labels = {
+    app = "vault"
+  }
 
   need_attached_disk = true
   attached_disk = {
@@ -80,13 +79,13 @@ module "compute_instance_regional" {
   project = "gl"
   name = "vault"
   domain = "test.mx"
-  labels = {
-    app = "vault"
-  }
   instance_count = 3
 
   machine_type = "e2-highcpu-2"
   tags = ["vault", "to-vault"]
+  labels = {
+    app = "vault"
+  }
 }
 ```
 

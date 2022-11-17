@@ -37,12 +37,7 @@ variable "domain" {
     type = string
 }
 variable "labels" {
-    type = object({
-        app = string
-        role = string
-        temp = string
-        ingest = string
-    })
+    type = object({})
     default = null
 }
 variable "instance_count" {

@@ -88,16 +88,7 @@ resource "google_compute_instance" "instances" {
     subnetwork = data.google_compute_subnetwork.subnetwork_set[each.value.region_short].self_link
   }
 
-  dynamic "labels" {
-    for_each = var.labels == null ? [] : [1]
-    content {
-      app = var.labels.app
-      role = var.labels.role
-      temp = var.labels.temp
-      ingest = var.labels.ingest
-      env = var.env
-    }
-  }
+  labels = var.labels
 
   lifecycle {
     ignore_changes = [attached_disk]

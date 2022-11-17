@@ -45,6 +45,39 @@ module "compute_instance_regional" {
   }
 }
 ```
+### Example 3 with own regions
+```
+module "compute_instance_regional" {
+  source = "../../modules/compute-instance-regional"
+
+  compute_regions = [
+      {
+          name = "europe-west4"
+          short = "ew4"
+          zones = ["a", "b", "c"]
+      },
+      {
+          name = "europe-west3"
+          short = "ew3"
+          zones = ["a", "b", "c"]
+      },
+      {
+          name = "europe-west1"
+          short = "ew1"
+          zones = ["b", "c", "d"]
+      },
+  ]
+
+  env = "test"
+  project = "gl"
+  name = "vault"
+  domain = "test.mx"
+  instance_count = 3
+
+  machine_type = "e2-highcpu-2"
+  tags = ["vault", "to-vault"]
+}
+```
 
 ## Outputs
 ```

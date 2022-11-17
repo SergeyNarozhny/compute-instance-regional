@@ -36,6 +36,12 @@ variable "name" {
 variable "domain" {
     type = string
 }
+variable "label_app" {
+    type = string
+}
+variable "label_role" {
+    type = string
+}
 variable "instance_count" {
     type = number
 }

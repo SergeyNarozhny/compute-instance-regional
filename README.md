@@ -6,6 +6,8 @@ Allows to create number of compute instances distributed randomly (random_shuffl
 - project ("gl", "eu", "au", "fx") - по умолчанию "gl", но лучше указывать явно
 - name - имя сервиса (vault в test-gl-gcpew1b-vault01)
 - domain - домен на конце dns (например, test.mx)
+- label_app - то, что пойдет в label app (например, opensearch)
+- label_role - то, что пойдет в label role (например, master)
 
 ## Usage example
 ### Example 1
@@ -17,6 +19,8 @@ module "compute_instance_regional" {
   project = "gl"
   name = "vault"
   domain = "test.mx"
+  label_app = "vault"
+  label_role = null
   instance_count = 3
 
   machine_type = "e2-highcpu-2"
@@ -32,6 +36,8 @@ module "compute_instance_regional" {
   project = "gl"
   name = "vault"
   domain = "test.mx"
+  label_app = "vault"
+  label_role = null
   instance_count = 3
 
   machine_type = "e2-highcpu-2"
@@ -72,6 +78,8 @@ module "compute_instance_regional" {
   project = "gl"
   name = "vault"
   domain = "test.mx"
+  label_app = "vault"
+  label_role = null
   instance_count = 3
 
   machine_type = "e2-highcpu-2"

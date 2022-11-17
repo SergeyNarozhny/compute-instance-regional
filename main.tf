@@ -3,6 +3,8 @@ locals {
   project = var.project
   name = var.name
   domain = var.domain
+  label_app = var.label_app
+  label_role = var.label_role
   instance_count = var.instance_count
 
   image_os = var.image_os
@@ -96,8 +98,9 @@ resource "google_compute_instance" "instances" {
   }
 
   labels = {
-    app = local.name
+    app = local.label_app
     env = local.env
+    role = local.label_role
   }
 
   lifecycle {

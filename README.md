@@ -6,7 +6,7 @@ Allows to create number of compute instances distributed randomly (random_shuffl
 - project ("gl", "eu", "au", "fx") - по умолчанию "gl", но лучше указывать явно
 - name - имя сервиса (vault в test-gl-gcpew1b-vault01)
 - domain - домен на конце dns (например, test.mx)
-- labels - содержимое labels (обязательно указать только label "app")
+- labels - содержимое labels (обязательно указать label "app" и "env")
 
 ## Usage example
 ### Example 1
@@ -24,6 +24,7 @@ module "compute_instance_regional" {
   tags = ["vault", "to-vault"]
   labels = {
     app = "vault"
+    env = "test"
   }
 }
 ```
@@ -42,6 +43,7 @@ module "compute_instance_regional" {
   tags = ["vault", "to-vault"]
   labels = {
     app = "vault"
+    env = "test"
   }
 
   need_attached_disk = true
@@ -85,6 +87,7 @@ module "compute_instance_regional" {
   tags = ["vault", "to-vault"]
   labels = {
     app = "vault"
+    env = "test"
   }
 }
 ```

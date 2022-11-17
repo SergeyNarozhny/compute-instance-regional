@@ -39,8 +39,8 @@ variable "domain" {
 variable "labels" {
     type = object({
         app = string
+        env = string
         role = optional(string)
-        env = optional(string)
         temp = optional(string)
         ingest = optional(string)
     })

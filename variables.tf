@@ -40,6 +40,7 @@ variable "labels" {
     type = object({
         app = string
         role = optional(string)
+        env = optional(string)
         temp = optional(string)
         ingest = optional(string)
     })

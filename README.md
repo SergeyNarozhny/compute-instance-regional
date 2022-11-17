@@ -6,7 +6,7 @@ Allows to create number of compute instances distributed randomly (random_shuffl
 - project ("gl", "eu", "au", "fx") - по умолчанию "gl", но лучше указывать явно
 - name - имя сервиса (vault в test-gl-gcpew1b-vault01)
 - domain - домен на конце dns (например, test.mx)
-- labels - содержимое labels
+- labels - содержимое labels (обязательно указать только label "app")
 
 ## Usage example
 ### Example 1

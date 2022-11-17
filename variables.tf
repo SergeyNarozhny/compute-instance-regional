@@ -36,11 +36,13 @@ variable "name" {
 variable "domain" {
     type = string
 }
-variable "label_app" {
-    type = string
-}
-variable "label_role" {
-    type = string
+variable "labels" {
+    type = object({
+        app = string
+        role = string
+        temp = string
+        ingest = string
+    })
 }
 variable "instance_count" {
     type = number

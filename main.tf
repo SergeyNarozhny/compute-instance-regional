@@ -1,15 +1,6 @@
 locals {
-  env = var.env
-  project = var.project
-  name = var.name
-  domain = var.domain
-  label_app = var.label_app
-  label_role = var.label_role
-  instance_count = var.instance_count
-
-  image_os = var.image_os
   instance_regions = [
-    for i in range(0, local.instance_count) : {
+    for i in range(0, var.instance_count) : {
       key       = i
       index     = i % length(var.compute_regions)
       region    = element(var.compute_regions, i % length(var.compute_regions))
@@ -30,7 +21,7 @@ data "google_compute_subnetwork" "subnetwork_set" {
       short   = region.short
     }
   }
-  name   = "${local.env}-${each.value.short}"
+  name   = "${var.env}-${each.value.short}"
   region = each.value.region
 }
 
@@ -77,8 +68,8 @@ resource "google_compute_instance" "instances" {
       zone          = random_shuffle.instances_zones[el.key].result[0] # 0 because result_count returns 1 el-array
     }
   }
-  name                      = "${local.env}-${local.project}-gcp${each.value.region_short}${each.value.zone}-${local.name}${format("%.2d", each.key + 1)}"
-  hostname                  = "${local.env}-${local.project}-gcp${each.value.region_short}${each.value.zone}-${local.name}${format("%.2d", each.key + 1)}.${local.domain}"
+  name                      = "${var.env}-${var.project}-gcp${each.value.region_short}${each.value.zone}-${var.name}${format("%.2d", each.key + 1)}"
+  hostname                  = "${var.env}-${var.project}-gcp${each.value.region_short}${each.value.zone}-${var.name}${format("%.2d", each.key + 1)}.${var.domain}"
   zone                      = "${each.value.region}-${each.value.zone}"
 
   machine_type              = var.machine_type
@@ -87,7 +78,7 @@ resource "google_compute_instance" "instances" {
 
   boot_disk {
     initialize_params {
-      image = local.image_os
+      image = var.image_os
       type = var.boot_disk_type
       size = var.boot_disk_size
     }
@@ -97,10 +88,15 @@ resource "google_compute_instance" "instances" {
     subnetwork = data.google_compute_subnetwork.subnetwork_set[each.value.region_short].self_link
   }
 
-  labels = {
-    app = local.label_app
-    env = local.env
-    role = local.label_role
+  dynamic "labels" {
+    for_each = var.labels == null ? [] : [1]
+    content {
+      app = var.labels.app
+      role = var.labels.role
+      temp = var.labels.temp
+      ingest = var.labels.ingest
+      env = var.env
+    }
   }
 
   lifecycle {

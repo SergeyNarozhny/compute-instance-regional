@@ -52,7 +52,7 @@ module "compute_instance_regional" {
   }
 }
 ```
-### Example 3 with own regions
+### Example 3 with own regions (region object structure must be kept!)
 ```
 module "compute_instance_regional" {
   source = "../../modules/compute-instance-regional"

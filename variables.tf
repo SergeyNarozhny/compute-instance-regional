@@ -43,6 +43,7 @@ variable "labels" {
         temp = string
         ingest = string
     })
+    default = null
 }
 variable "instance_count" {
     type = number

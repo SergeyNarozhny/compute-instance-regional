@@ -1,6 +1,12 @@
 # Compute instance regional
 Allows to create number of compute instances distributed randomly (random_shuffle) among supplied regions.
 
+## Params
+- env ("test", "test-dmz", "common", "common-dmz", "stage", "stage-dmz", "prod", "prod-dmz")
+- project ("gl", "eu", "au", "fx") - по умолчанию "gl", но лучше указывать явно
+- name - имя сервиса (vault в test-gl-gcpew1b-vault01)
+- domain - домен на конце dns (например, test.mx)
+
 ## Usage example
 ### Example 1
 ```

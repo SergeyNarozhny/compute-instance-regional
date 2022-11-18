@@ -7,6 +7,7 @@ Allows to create number of compute instances distributed randomly (random_shuffl
 - name - имя сервиса (vault в test-gl-gcpew1b-vault01)
 - domain - домен на конце dns (например, test.mx)
 - labels - содержимое labels (обязательно указать label "app" и "env")
+- image_os - образ для ОС диска (можно не указывать, по умолчанию наливается debian 11)
 
 ## Usage example
 ### Example 1

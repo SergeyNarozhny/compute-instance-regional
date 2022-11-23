@@ -13,7 +13,7 @@ Allows to create number of compute instances distributed randomly (random_shuffl
 ### Example 1
 ```
 module "compute_instance_regional" {
-  source = "../../modules/compute-instance-regional"
+  source = "git@gitlab.fbs-d.com:terraform/modules/compute-instance-regional.git"
 
   env = "test"
   project = "gl"
@@ -32,7 +32,7 @@ module "compute_instance_regional" {
 ### Example 2 with disks
 ```
 module "compute_instance_regional" {
-  source = "../../modules/compute-instance-regional"
+  source = "git@gitlab.fbs-d.com:terraform/modules/compute-instance-regional.git"
 
   env = "test"
   project = "gl"
@@ -58,7 +58,7 @@ module "compute_instance_regional" {
 ### Example 3 with own regions (region object structure must be kept!)
 ```
 module "compute_instance_regional" {
-  source = "../../modules/compute-instance-regional"
+  source = "git@gitlab.fbs-d.com:terraform/modules/compute-instance-regional.git"
 
   compute_regions = [
       {

@@ -93,4 +93,8 @@ resource "google_compute_instance" "instances" {
   lifecycle {
     ignore_changes = [attached_disk]
   }
+
+  metadata = {
+    serial-port-enable = true
+  }
 }

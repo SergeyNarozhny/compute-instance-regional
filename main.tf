@@ -36,12 +36,13 @@ resource "random_shuffle" "instances_zones" {
 resource "google_compute_disk" "nodes_disk" {
   for_each = {
       for el in local.instance_regions : el.key => {
+          key       = el.key
           region    = el.region.name
           zone      = random_shuffle.instances_zones[el.key].result[0] # 0 because result_count returns 1 el-array
       }
       if var.need_attached_disk
   }
-  name = var.attached_disk.name
+  name = "${var.attached_disk.name}${format("%.2d", each.value.key + 1)}"
   type = var.attached_disk.type
   zone = "${each.value.region}-${each.value.zone}"
   size = var.attached_disk.size
@@ -49,9 +50,7 @@ resource "google_compute_disk" "nodes_disk" {
 resource "google_compute_attached_disk" "disks_attachment" {
   for_each = {
       for el in local.instance_regions : el.key => {
-          key       = el.key
-          region    = el.region.name
-          zone      = random_shuffle.instances_zones[el.key].result[0] # 0 because result_count returns 1 el-array
+          key = el.key
       }
       if var.need_attached_disk
   }

@@ -42,9 +42,9 @@ resource "google_compute_disk" "nodes_disk" {
       }
       if var.need_attached_disk
   }
-  name = "${var.attached_disk.name}${format("%.2d", each.value.key + 1)}"
-  type = var.attached_disk.type
+  name = "${var.attached_disk.name}-${google_compute_instance.instances[each.value.key].instance_id}"
   zone = "${each.value.region}-${each.value.zone}"
+  type = var.attached_disk.type
   size = var.attached_disk.size
 }
 resource "google_compute_attached_disk" "disks_attachment" {

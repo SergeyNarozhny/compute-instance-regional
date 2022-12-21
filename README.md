@@ -8,6 +8,10 @@ Allows to create number of compute instances distributed randomly (random_shuffl
 - domain - домен на конце dns (например, test.mx)
 - labels - содержимое labels (обязательно указать label "app" и "env")
 - image_os - образ для ОС диска (можно не указывать, по умолчанию наливается debian 11)
+- need_attached_disk - true для подключения дополнительного диска к каждой машине
+- attached_disk - параметры дополнительно подключаемого диска
+- need_disk_snapshot - true для регулярного бэкапирования диска
+- disk_snapshot - параметры для бэкапирования дополнительно подключаемого диска (по умолчанию days_in_cycle = 1, start_time = "23:00", max_retention_days = 14)
 
 ## Usage example
 ### Example 1
@@ -89,6 +93,65 @@ module "compute_instance_regional" {
   labels = {
     app = "vault"
     env = "test"
+  }
+}
+```
+### Example 4 with disks and backup snapshots
+```
+module "compute_instance_regional" {
+  source = "git@gitlab.fbs-d.com:terraform/modules/compute-instance-regional.git"
+
+  env = "test"
+  project = "gl"
+  name = "vault"
+  domain = "test.mx"
+  instance_count = 3
+
+  machine_type = "e2-highcpu-2"
+  tags = ["vault", "to-vault"]
+  labels = {
+    app = "vault"
+    env = "test"
+  }
+
+  need_attached_disk = true
+  need_disk_snapshot = true
+  attached_disk = {
+      name = "vault-storage"
+      type = "pd-ssd"
+      size = "200"
+  }
+}
+```
+### Example 5 with disks and backup snapshots on custom schedule (once in 3 days with 9 days retention executed on 00:00)
+```
+module "compute_instance_regional" {
+  source = "git@gitlab.fbs-d.com:terraform/modules/compute-instance-regional.git"
+
+  env = "test"
+  project = "gl"
+  name = "vault"
+  domain = "test.mx"
+  instance_count = 3
+
+  machine_type = "e2-highcpu-2"
+  tags = ["vault", "to-vault"]
+  labels = {
+    app = "vault"
+    env = "test"
+  }
+
+  need_attached_disk = true
+  need_disk_snapshot = true
+  attached_disk = {
+      name = "vault-storage"
+      type = "pd-ssd"
+      size = "200"
+  }
+  disk_snapshot = {
+      days_in_cycle = 3
+      start_time = "00:00"
+      max_retention_days = 9
   }
 }
 ```

@@ -84,3 +84,19 @@ variable "attached_disk" {
     })
     default = null
 }
+variable "need_disk_snapshot" {
+    type = bool
+    default = false
+}
+variable "disk_snapshot" {
+    type = object({
+        days_in_cycle = number
+        start_time = string
+        max_retention_days = number
+    })
+    default = {
+        days_in_cycle = 1
+        start_time = "23:00"
+        max_retention_days = 14
+    }
+}

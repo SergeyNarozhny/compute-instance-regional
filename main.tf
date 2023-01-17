@@ -133,5 +133,12 @@ resource "google_compute_instance" "instances" {
 
   metadata = {
     serial-port-enable = true
+    shutdown-script = var.shutdown_script_path != "" ? file("${path.cwd}/${var.shutdown_script_path}") : ""
+  }
+
+  timeouts {
+    create = var.timeouts.create
+    update = var.timeouts.update
+    delete = var.timeouts.delete
   }
 }

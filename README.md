@@ -12,6 +12,8 @@ Allows to create number of compute instances distributed randomly (random_shuffl
 - attached_disk - параметры дополнительно подключаемого диска
 - need_disk_snapshot - true для регулярного бэкапирования диска
 - disk_snapshot - параметры для бэкапирования дополнительно подключаемого диска (по умолчанию days_in_cycle = 1, start_time = "23:00", max_retention_days = 14)
+- timeouts (create, update, delete = "10m") - таймауты на операции инстанса (создание, обновление, удаление)
+- shutdown_script_path - путь до shutdown-скрипта (опционально, от корня tf плана)
 
 ## Usage example
 ### Example 1
@@ -33,7 +35,7 @@ module "compute_instance_regional" {
   }
 }
 ```
-### Example 2 with disks
+### Example 2 with disks and custom timeouts
 ```
 module "compute_instance_regional" {
   source = "git@gitlab.fbs-d.com:terraform/modules/compute-instance-regional.git"
@@ -57,9 +59,15 @@ module "compute_instance_regional" {
       type = "pd-ssd"
       size = "200"
   }
+
+  timeouts = {
+      create = "1m"
+      update = "1m"
+      delete = "30s"
+  }
 }
 ```
-### Example 3 with own regions (region object structure must be kept!)
+### Example 3 with own regions (region object structure must be kept!) and shutdown script
 ```
 module "compute_instance_regional" {
   source = "git@gitlab.fbs-d.com:terraform/modules/compute-instance-regional.git"
@@ -94,6 +102,8 @@ module "compute_instance_regional" {
     app = "vault"
     env = "test"
   }
+
+  shutdown_script_path = "scripts/shutdown.sh"
 }
 ```
 ### Example 4 with disks and backup snapshots

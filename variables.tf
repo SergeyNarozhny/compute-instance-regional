@@ -100,3 +100,19 @@ variable "disk_snapshot" {
         max_retention_days = 14
     }
 }
+variable "timeouts" {
+    type = object({
+        create = optional(string)
+        update = optional(string)
+        delete = optional(string)
+    })
+    default = {
+        create = "10m"
+        update = "10m"
+        delete = "10m"
+    }
+}
+variable "shutdown_script_path" {
+    type = string
+    default = ""
+}

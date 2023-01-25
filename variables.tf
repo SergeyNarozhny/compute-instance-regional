@@ -43,6 +43,7 @@ variable "labels" {
         role = optional(string)
         temp = optional(string)
         ingest = optional(string)
+        instance = optional(string)
     })
     default = null
 }

@@ -126,7 +126,9 @@ resource "google_compute_instance" "instances" {
   }
 
   
-  labels = merge(var.labels, {instance_number=${each.key + 1}})
+  labels = merge(var.labels, {
+    instance_number = each.key + 1
+  })
 
   lifecycle {
     ignore_changes = [attached_disk]

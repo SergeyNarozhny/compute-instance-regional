@@ -125,7 +125,10 @@ resource "google_compute_instance" "instances" {
     subnetwork = data.google_compute_subnetwork.subnetwork_set[each.value.region_short].self_link
   }
 
-  labels = var.labels
+  
+  labels = merge(var.labels, {
+    instance_number = each.key + 1
+  })
 
   lifecycle {
     ignore_changes = [attached_disk]

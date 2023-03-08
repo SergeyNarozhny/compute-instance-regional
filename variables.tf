@@ -44,6 +44,7 @@ variable "labels" {
         temp = optional(string)
         ingest = optional(string)
         instance = optional(string)
+        service = optional(string)
     })
     default = null
 }
@@ -70,7 +71,7 @@ variable "boot_disk_type" {
 }
 variable "boot_disk_size" {
     type = number
-    default = 20  
+    default = 20
 }
 
 variable "need_attached_disk" {

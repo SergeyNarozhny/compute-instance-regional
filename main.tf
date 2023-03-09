@@ -11,6 +11,13 @@ locals {
       zones     = sort(el.region.zones)
     }
   }
+  regions_map = {
+    for r in var.compute_regions : r.name => {
+      name      = r.name
+      short     = r.short
+      zones     = r.zones
+    }
+  }
 }
 
 # Get subnetworks
@@ -20,8 +27,20 @@ data "google_compute_subnetwork" "subnetwork_set" {
       region  = region.name
       short   = region.short
     }
+    if length(var.custom_subnetworks) == 0
   }
   name   = "${var.env}-${each.value.short}"
+  region = each.value.region
+}
+data "google_compute_subnetwork" "custom_subnetworks" {
+  for_each = {
+    for subnet in var.custom_subnetworks : subnet.region => {
+      subnet  = subnet.name
+      region  = subnet.region
+      short   = local.regions_map[subnet.region].short
+    }
+  }
+  name   = each.value.subnet
   region = each.value.region
 }
 
@@ -122,10 +141,9 @@ resource "google_compute_instance" "instances" {
   }
 
   network_interface {
-    subnetwork = data.google_compute_subnetwork.subnetwork_set[each.value.region_short].self_link
+    subnetwork = length(var.custom_subnetworks) == 0 ? data.google_compute_subnetwork.subnetwork_set[each.value.region_short].self_link : data.google_compute_subnetwork.custom_subnetworks[each.value.region].self_link
   }
 
-  
   labels = merge(var.labels, {
     instance_number = each.key + 1
   })

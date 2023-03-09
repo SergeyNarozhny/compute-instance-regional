@@ -2,11 +2,14 @@
 Allows to create number of compute instances distributed randomly (random_shuffle) among supplied regions.
 
 ## Params
+- compute_regions (по-умолчанию = регионы EU) - массив объектов регионов с заданными параметрами
 - env ("test", "test-dmz", "common", "common-dmz", "stage", "stage-dmz", "prod", "prod-dmz")
 - project ("gl", "eu", "au", "fx") - по умолчанию "gl", но лучше указывать явно
+- custom_subnetwork (опционально) - кастомный subnetwork для деплоя VM в случае переопределения compute_regions
 - name - имя сервиса (vault в test-gl-gcpew1b-vault01)
 - domain - домен на конце dns (например, test.mx)
 - labels - содержимое labels (обязательно указать label "app" и "env")
+  label "instance_number" зарезервирован и проставляется автоматически = порядковый номер наливаемой VM
 - image_os - образ для ОС диска (можно не указывать, по умолчанию наливается debian 11)
 - need_attached_disk - true для подключения дополнительного диска к каждой машине
 - attached_disk - параметры дополнительно подключаемого диска
@@ -28,7 +31,7 @@ module "compute_instance_regional" {
   instance_count = 3
 
   machine_type = "e2-highcpu-2"
-  tags = ["vault", "to-vault"]
+  tags = ["test-vault"]
   labels = {
     app = "vault"
     env = "test"
@@ -47,7 +50,7 @@ module "compute_instance_regional" {
   instance_count = 3
 
   machine_type = "e2-highcpu-2"
-  tags = ["vault", "to-vault"]
+  tags = ["test-vault"]
   labels = {
     app = "vault"
     env = "test"
@@ -87,7 +90,7 @@ module "compute_instance_regional" {
           name = "europe-west1"
           short = "ew1"
           zones = ["b", "c", "d"]
-      },
+      }
   ]
 
   env = "test"
@@ -97,7 +100,7 @@ module "compute_instance_regional" {
   instance_count = 3
 
   machine_type = "e2-highcpu-2"
-  tags = ["vault", "to-vault"]
+  tags = ["test-vault"]
   labels = {
     app = "vault"
     env = "test"
@@ -118,7 +121,7 @@ module "compute_instance_regional" {
   instance_count = 3
 
   machine_type = "e2-highcpu-2"
-  tags = ["vault", "to-vault"]
+  tags = ["test-vault"]
   labels = {
     app = "vault"
     env = "test"
@@ -145,7 +148,7 @@ module "compute_instance_regional" {
   instance_count = 3
 
   machine_type = "e2-highcpu-2"
-  tags = ["vault", "to-vault"]
+  tags = ["test-vault"]
   labels = {
     app = "vault"
     env = "test"
@@ -162,6 +165,39 @@ module "compute_instance_regional" {
       days_in_cycle = 3
       start_time = "00:00"
       max_retention_days = 9
+  }
+}
+```
+### Example 6 with custom_subnetwork and diff compute_regions
+```
+module "compute_instance_regional" {
+  source = "git@gitlab.fbs-d.com:terraform/modules/compute-instance-regional.git"
+
+  custom_subnetworks = [
+      {
+          name = "fx-prod-net01"
+          region = "asia-southeast2"
+      }
+  ]
+  compute_regions = [
+      {
+          name = "asia-southeast2"
+          short = "as2"
+          zones = ["a", "b", "c"]
+      }
+  ]
+
+  env = "test"
+  project = "gl"
+  name = "vault"
+  domain = "test.mx"
+  instance_count = 3
+
+  machine_type = "e2-highcpu-2"
+  tags = ["test-vault"]
+  labels = {
+    app = "vault"
+    env = "test"
   }
 }
 ```

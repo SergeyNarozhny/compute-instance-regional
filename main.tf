@@ -57,7 +57,8 @@ resource "google_compute_disk" "nodes_disk" {
       for el in local.instance_regions : el.key => {
           key       = el.key
           region    = el.region.name
-          zone      = random_shuffle.instances_zones[el.key].result[0] # 0 because result_count returns 1 el-array
+          # result[0] because result_count returns 1 el-array
+          zone      = var.use_increment_zone ? local.instance_zones[el.key].zones[el.key % length(local.instance_zones[el.key].zones)] : random_shuffle.instances_zones[el.key].result[0]
       }
       if var.need_attached_disk || var.need_disk_snapshot
   }
@@ -106,7 +107,8 @@ resource "google_compute_disk_resource_policy_attachment" "snapshots_attachment"
       for el in local.instance_regions : el.key => {
           key     = el.key
           region  = el.region.name
-          zone    = random_shuffle.instances_zones[el.key].result[0] # 0 because result_count returns 1 el-array
+          # result[0] because result_count returns 1 el-array
+          zone    = var.use_increment_zone ? local.instance_zones[el.key].zones[el.key % length(local.instance_zones[el.key].zones)] : random_shuffle.instances_zones[el.key].result[0]
       }
       if var.need_disk_snapshot
   }
@@ -121,7 +123,8 @@ resource "google_compute_instance" "instances" {
     for el in local.instance_regions : el.key => {
       region        = el.region.name
       region_short  = el.region.short
-      zone          = random_shuffle.instances_zones[el.key].result[0] # 0 because result_count returns 1 el-array
+      # result[0] because result_count returns 1 el-array
+      zone          = var.use_increment_zone ? local.instance_zones[el.key].zones[el.key % length(local.instance_zones[el.key].zones)] : random_shuffle.instances_zones[el.key].result[0]
     }
   }
   name                      = "${var.env}-${var.project}-gcp${each.value.region_short}${each.value.zone}-${var.name}${format("%.2d", each.key + 1)}"

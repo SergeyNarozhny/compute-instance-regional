@@ -125,3 +125,7 @@ variable "shutdown_script_path" {
     type = string
     default = ""
 }
+variable "use_increment_zone" {
+    type = bool
+    default = false
+}

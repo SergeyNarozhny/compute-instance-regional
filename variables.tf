@@ -30,6 +30,13 @@ variable "project" {
     type = string
     default = "gl"
 }
+variable "custom_subnetworks" {
+  type = list(object({
+    name = string
+    region = string
+  }))
+  default = []
+}
 variable "name" {
     type = string
 }

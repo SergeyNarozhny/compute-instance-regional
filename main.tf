@@ -158,7 +158,7 @@ resource "google_compute_instance" "instances" {
 
   metadata = {
     serial-port-enable = true
-    shutdown-script = var.shutdown_script_path != "" ? file("${path.cwd}/${var.shutdown_script_path}") : "#! /bin/bash sleep ${each.value.real_index * 60}"
+    shutdown-script = var.shutdown_script_path != "" ? file("${path.cwd}/${var.shutdown_script_path}") : "#! /bin/bash sleep ${each.key * var.shutdown_sleep}"
   }
 
   timeouts {

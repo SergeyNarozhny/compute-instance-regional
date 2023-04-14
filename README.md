@@ -16,6 +16,7 @@ Allows to create number of compute instances distributed randomly (random_shuffl
 - need_disk_snapshot - true для регулярного бэкапирования диска
 - disk_snapshot - параметры для бэкапирования дополнительно подключаемого диска (по умолчанию days_in_cycle = 1, start_time = "23:00", max_retention_days = 14)
 - timeouts (create, update, delete = "10m") - таймауты на операции инстанса (создание, обновление, удаление)
+- shutdown_sleep (по-умолчанию = 20) - время в cекундах, которое используется как множитель для команды sleep при любой перезагрузке/выключении VM
 - shutdown_script_path - путь до shutdown-скрипта (опционально, от корня tf плана)
 - use_increment_zone - true для последовательного выбора зон согласно индексу VM (вместо random shuffle функции)
 

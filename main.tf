@@ -121,14 +121,15 @@ resource "google_compute_disk_resource_policy_attachment" "snapshots_attachment"
 resource "google_compute_instance" "instances" {
   for_each = {
     for el in local.instance_regions : el.key => {
+      real_index    = el.key + 1
       region        = el.region.name
       region_short  = el.region.short
       # result[0] because result_count returns 1 el-array
       zone          = var.use_increment_zone ? local.instance_zones[el.key].zones[el.key % length(local.instance_zones[el.key].zones)] : random_shuffle.instances_zones[el.key].result[0]
     }
   }
-  name                      = "${var.env}-${var.project}-gcp${each.value.region_short}${each.value.zone}-${var.name}${format("%.2d", each.key + 1)}"
-  hostname                  = "${var.env}-${var.project}-gcp${each.value.region_short}${each.value.zone}-${var.name}${format("%.2d", each.key + 1)}.${var.domain}"
+  name                      = "${var.env}-${var.project}-gcp${each.value.region_short}${each.value.zone}-${var.name}${format("%.2d", each.value.real_index)}"
+  hostname                  = "${var.env}-${var.project}-gcp${each.value.region_short}${each.value.zone}-${var.name}${format("%.2d", each.value.real_index)}.${var.domain}"
   zone                      = "${each.value.region}-${each.value.zone}"
 
   machine_type              = var.machine_type
@@ -148,7 +149,7 @@ resource "google_compute_instance" "instances" {
   }
 
   labels = merge(var.labels, {
-    instance_number = each.key + 1
+    instance_number = each.value.real_index
   })
 
   lifecycle {
@@ -157,7 +158,7 @@ resource "google_compute_instance" "instances" {
 
   metadata = {
     serial-port-enable = true
-    shutdown-script = var.shutdown_script_path != "" ? file("${path.cwd}/${var.shutdown_script_path}") : ""
+    shutdown-script = var.shutdown_script_path != "" ? file("${path.cwd}/${var.shutdown_script_path}") : "#! /bin/bash sleep ${each.key * var.shutdown_sleep}"
   }
 
   timeouts {

@@ -121,6 +121,10 @@ variable "timeouts" {
         delete = "10m"
     }
 }
+variable "shutdown_sleep" {
+    type = number
+    default = 20
+}
 variable "shutdown_script_path" {
     type = string
     default = ""

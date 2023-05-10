@@ -18,6 +18,16 @@ locals {
       zones     = r.zones
     }
   }
+  instances = {
+    for el in local.instance_regions : el.key => {
+      key           = el.key
+      real_index    = el.key + 1
+      region        = el.region.name
+      region_short  = el.region.short
+      # result[0] because result_count returns 1 el-array
+      zone          = var.use_increment_zone ? local.instance_zones[el.key].zones[el.key % length(local.instance_zones[el.key].zones)] : random_shuffle.instances_zones[el.key].result[0]
+    }
+  }
 }
 
 # Get subnetworks
@@ -51,7 +61,7 @@ resource "random_shuffle" "instances_zones" {
   result_count  = 1
 }
 
-# DISKS with attachments
+# Attached disks
 resource "google_compute_disk" "nodes_disk" {
   for_each = {
       for el in local.instance_regions : el.key => {
@@ -67,7 +77,7 @@ resource "google_compute_disk" "nodes_disk" {
   type = var.attached_disk.type
   size = var.attached_disk.size
 }
-resource "google_compute_attached_disk" "disks_attachment" {
+resource "google_compute_attached_disk" "nodes_disk_attachment" {
   for_each = {
       for el in local.instance_regions : el.key => {
           key = el.key
@@ -77,8 +87,7 @@ resource "google_compute_attached_disk" "disks_attachment" {
   disk     = google_compute_disk.nodes_disk[each.value.key].self_link
   instance = google_compute_instance.instances[each.value.key].self_link
 }
-
-# Snapshots for DISKS with attachments
+# Snapshots for attached disks
 resource "google_compute_resource_policy" "disks_snapshot" {
   for_each = {
       for el in local.instance_regions : el.key => {
@@ -117,10 +126,70 @@ resource "google_compute_disk_resource_policy_attachment" "snapshots_attachment"
   zone = "${each.value.region}-${each.value.zone}"
 }
 
+# BOOT disks
+resource "google_compute_disk" "boot_disks" {
+  for_each = {
+      for el in local.instance_regions : el.key => {
+          key       = el.key
+          region    = el.region.name
+          # result[0] because result_count returns 1 el-array
+          zone      = var.use_increment_zone ? local.instance_zones[el.key].zones[el.key % length(local.instance_zones[el.key].zones)] : random_shuffle.instances_zones[el.key].result[0]
+      }
+  }
+  name    = "boot-disk-for-${google_compute_instance.instances[each.value.key].instance_id}"
+  zone    = "${each.value.region}-${each.value.zone}"
+  image   = var.image_os
+  type    = var.boot_disk_type
+  size    = var.boot_disk_size
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+# Snapshots for boot disks
+resource "google_compute_resource_policy" "boot_disks_snapshot" {
+  for_each = {
+      for el in local.instance_regions : el.key => {
+          key     = el.key
+          region  = el.region.name
+      }
+      if var.need_disk_snapshot
+  }
+  name   = "${google_compute_disk.boot_disks[each.value.key].name}-policy"
+  region = each.value.region
+
+  snapshot_schedule_policy {
+    schedule {
+      daily_schedule {
+        days_in_cycle     = var.disk_snapshot.days_in_cycle
+        start_time        = var.disk_snapshot.start_time
+      }
+    }
+    retention_policy {
+      max_retention_days  = var.disk_snapshot.max_retention_days
+    }
+  }
+}
+resource "google_compute_disk_resource_policy_attachment" "boot_snapshots_attachment" {
+  for_each = {
+      for el in local.instance_regions : el.key => {
+          key     = el.key
+          region  = el.region.name
+          # result[0] because result_count returns 1 el-array
+          zone    = var.use_increment_zone ? local.instance_zones[el.key].zones[el.key % length(local.instance_zones[el.key].zones)] : random_shuffle.instances_zones[el.key].result[0]
+      }
+      if var.need_disk_snapshot
+  }
+  name = google_compute_resource_policy.boot_disks_snapshot[each.value.key].name
+  disk = google_compute_disk.boot_disks[each.value.key].name
+  zone = "${each.value.region}-${each.value.zone}"
+}
+
 # INSTANCES
 resource "google_compute_instance" "instances" {
   for_each = {
     for el in local.instance_regions : el.key => {
+      key           = el.key
       real_index    = el.key + 1
       region        = el.region.name
       region_short  = el.region.short
@@ -137,11 +206,7 @@ resource "google_compute_instance" "instances" {
   allow_stopping_for_update = var.allow_stopping_for_update
 
   boot_disk {
-    initialize_params {
-      image = var.image_os
-      type = var.boot_disk_type
-      size = var.boot_disk_size
-    }
+    source = google_compute_disk.boot_disks[each.value.key].self_link
   }
 
   network_interface {

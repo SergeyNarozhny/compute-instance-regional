@@ -121,10 +121,6 @@ resource "google_compute_disk" "boot_disks" {
   image   = var.image_os
   type    = var.boot_disk_type
   size    = var.boot_disk_size
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 # Snapshots for boot disks
 resource "google_compute_resource_policy" "boot_disks_snapshot" {
@@ -143,7 +139,8 @@ resource "google_compute_resource_policy" "boot_disks_snapshot" {
       }
     }
     retention_policy {
-      max_retention_days  = var.disk_snapshot.max_retention_days
+      max_retention_days    = var.disk_snapshot.max_retention_days
+      on_source_disk_delete = "KEEP_AUTO_SNAPSHOTS"
     }
   }
 }

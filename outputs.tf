@@ -13,3 +13,6 @@ output "self_links" {
 output "vm_ips" {
     value = values(google_compute_instance.instances)[*].network_interface.0.network_ip
 }
+output "vm_nat_ips" {
+    value = values(google_compute_instance.instances)[*].network_interface.0.access_config.0.nat_ip
+}

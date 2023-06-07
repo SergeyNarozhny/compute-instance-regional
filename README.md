@@ -14,6 +14,7 @@ Allows to create number of compute instances distributed randomly (random_shuffl
 - need_attached_disk - true для подключения дополнительного диска к каждой машине
 - attached_disk - параметры дополнительно подключаемого диска
 - need_disk_snapshot - true для регулярного бэкапирования диска
+- need_external_ip (опционально, по-умолчанию false) - зарегать ephemeral external ip для тачки
 - disk_snapshot - параметры для бэкапирования дополнительно подключаемого диска (по умолчанию days_in_cycle = 1, start_time = "23:00", max_retention_days = 14)
 - timeouts (create, update, delete = "10m") - таймауты на операции инстанса (создание, обновление, удаление)
 - shutdown_sleep (по-умолчанию = 20) - время в cекундах, которое используется как множитель для команды sleep при любой перезагрузке/выключении VM
@@ -231,4 +232,6 @@ module "compute_instance_regional" {
 - compute_instance_regional.ids
 - compute_instance_regional.instance_ids
 - compute_instance_regional.self_links
+- compute_instance_regional.vm_ips
+- compute_instance_regional.vm_nat_ips
 ```

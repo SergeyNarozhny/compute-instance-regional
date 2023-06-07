@@ -146,6 +146,13 @@ resource "google_compute_instance" "instances" {
 
   network_interface {
     subnetwork = length(var.custom_subnetworks) == 0 ? data.google_compute_subnetwork.subnetwork_set[each.value.region_short].self_link : data.google_compute_subnetwork.custom_subnetworks[each.value.region].self_link
+
+    dynamic access_config {
+      for_each = var.need_external_ip ? [1] : []
+      content {
+        network_tier = "PREMIUM"
+      }
+    }
   }
 
   labels = merge(var.labels, {

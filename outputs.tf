@@ -10,3 +10,6 @@ output "instance_ids" {
 output "self_links" {
     value = values(google_compute_instance.instances)[*].self_link
 }
+output "vm_ips" {
+    value = values(google_compute_instance.instances)[*].network_interface.0.network_ip
+}

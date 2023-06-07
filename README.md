@@ -138,7 +138,7 @@ module "compute_instance_regional" {
   }
 }
 ```
-### Example 5 with disks and backup snapshots on custom schedule (once in 3 days with 9 days retention executed on 00:00)
+### Example 5 with disks and backup snapshots on custom schedule (each day during 14 days executed on 23:00)
 ```
 module "compute_instance_regional" {
   source = "git@gitlab.fbs-d.com:terraform/modules/compute-instance-regional.git"
@@ -164,9 +164,9 @@ module "compute_instance_regional" {
       size = "200"
   }
   disk_snapshot = {
-      days_in_cycle = 3
-      start_time = "00:00"
-      max_retention_days = 9
+      days_in_cycle = 1
+      start_time = "23:00"
+      max_retention_days = 14
   }
 }
 ```

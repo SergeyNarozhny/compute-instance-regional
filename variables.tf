@@ -109,6 +109,10 @@ variable "disk_snapshot" {
         max_retention_days = 14
     }
 }
+variable "need_external_ip" {
+    type = bool
+    default = false
+}
 variable "timeouts" {
     type = object({
         create = optional(string)

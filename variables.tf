@@ -52,6 +52,7 @@ variable "labels" {
         ingest = optional(string)
         instance = optional(string)
         service = optional(string)
+        group = optional(string)
     })
     default = null
 }

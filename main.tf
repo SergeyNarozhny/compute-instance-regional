@@ -28,6 +28,20 @@ locals {
       zone          = var.use_increment_zone ? local.instance_zones[el.key].zones[el.key % length(local.instance_zones[el.key].zones)] : random_shuffle.instances_zones[el.key].result[0]
     }
   }
+  disks = flatten([
+    for k, inst in google_compute_instance.instances : [
+      for disk in var.attached_disks : {
+        inst_key = k
+        name     = "${disk.name}-${inst.instance_id}"
+        key      = "${k}${index(var.attached_disks, disk) + 1}"
+        inst_id  = inst.instance_id
+        zone     = inst.zone
+        region   = regex("\\w+-\\w+", inst.zone)
+        type     = disk.type
+        size     = disk.size
+      }
+    ]
+  ])
 }
 
 # Get subnetworks
@@ -64,26 +78,26 @@ resource "random_shuffle" "instances_zones" {
 # Attached disks
 resource "google_compute_disk" "nodes_disk" {
   for_each = {
-      for inst in local.instances : inst.key => inst
+      for disk in local.disks : disk.key => disk
       if var.need_attached_disk
   }
-  name = "${var.attached_disk.name}-${google_compute_instance.instances[each.value.key].instance_id}"
-  zone = "${each.value.region}-${each.value.zone}"
-  type = var.attached_disk.type
-  size = var.attached_disk.size
+  name = each.value.name
+  zone = each.value.zone
+  type = each.value.type
+  size = each.value.size
 }
 resource "google_compute_attached_disk" "nodes_disk_attachment" {
   for_each = {
-      for inst in local.instances : inst.key => inst
+      for disk in local.disks : disk.key => disk
       if var.need_attached_disk
   }
   disk     = google_compute_disk.nodes_disk[each.value.key].self_link
-  instance = google_compute_instance.instances[each.value.key].self_link
+  instance = google_compute_instance.instances[each.value.inst_key].self_link
 }
 # Snapshots for attached disks
 resource "google_compute_resource_policy" "disks_snapshot" {
   for_each = {
-      for inst in local.instances : inst.key => inst
+      for disk in local.disks : disk.key => disk
       if var.need_attached_disk && var.need_disk_snapshot
   }
   name   = "${google_compute_disk.nodes_disk[each.value.key].name}-policy"
@@ -103,12 +117,12 @@ resource "google_compute_resource_policy" "disks_snapshot" {
 }
 resource "google_compute_disk_resource_policy_attachment" "snapshots_attachment" {
   for_each = {
-      for inst in local.instances : inst.key => inst
+      for disk in local.disks : disk.key => disk
       if var.need_attached_disk && var.need_disk_snapshot
   }
   name = google_compute_resource_policy.disks_snapshot[each.value.key].name
   disk = google_compute_disk.nodes_disk[each.value.key].name
-  zone = "${each.value.region}-${each.value.zone}"
+  zone = each.value.zone
 }
 
 # BOOT disks

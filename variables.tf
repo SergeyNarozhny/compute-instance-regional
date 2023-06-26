@@ -86,13 +86,13 @@ variable "need_attached_disk" {
     type = bool
     default = false
 }
-variable "attached_disk" {
-    type = object({
+variable "attached_disks" {
+    type = list(object({
         name = string
         type = string
         size = string
-    })
-    default = null
+    }))
+    default = []
 }
 variable "need_disk_snapshot" {
     type = bool

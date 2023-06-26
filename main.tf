@@ -18,6 +18,16 @@ locals {
       zones     = r.zones
     }
   }
+  instances = {
+    for el in local.instance_regions : el.key => {
+      key           = el.key
+      real_index    = el.key + 1
+      region        = el.region.name
+      region_short  = el.region.short
+      # result[0] because result_count returns 1 el-array
+      zone          = var.use_increment_zone ? local.instance_zones[el.key].zones[el.key % length(local.instance_zones[el.key].zones)] : random_shuffle.instances_zones[el.key].result[0]
+    }
+  }
 }
 
 # Get subnetworks
@@ -51,16 +61,11 @@ resource "random_shuffle" "instances_zones" {
   result_count  = 1
 }
 
-# DISKS with attachments
+# Attached disks
 resource "google_compute_disk" "nodes_disk" {
   for_each = {
-      for el in local.instance_regions : el.key => {
-          key       = el.key
-          region    = el.region.name
-          # result[0] because result_count returns 1 el-array
-          zone      = var.use_increment_zone ? local.instance_zones[el.key].zones[el.key % length(local.instance_zones[el.key].zones)] : random_shuffle.instances_zones[el.key].result[0]
-      }
-      if var.need_attached_disk || var.need_disk_snapshot
+      for inst in local.instances : inst.key => inst
+      if var.need_attached_disk
   }
   name = "${var.attached_disk.name}-${google_compute_instance.instances[each.value.key].instance_id}"
   zone = "${each.value.region}-${each.value.zone}"
@@ -69,23 +74,18 @@ resource "google_compute_disk" "nodes_disk" {
 }
 resource "google_compute_attached_disk" "disks_attachment" {
   for_each = {
-      for el in local.instance_regions : el.key => {
-          key = el.key
-      }
-      if var.need_attached_disk || var.need_disk_snapshot
+      for inst in local.instances : inst.key => inst
+      if var.need_attached_disk
   }
   disk     = google_compute_disk.nodes_disk[each.value.key].self_link
   instance = google_compute_instance.instances[each.value.key].self_link
 }
 
-# Snapshots for DISKS with attachments
+# Snapshots for attached disks
 resource "google_compute_resource_policy" "disks_snapshot" {
   for_each = {
-      for el in local.instance_regions : el.key => {
-          key     = el.key
-          region  = el.region.name
-      }
-      if var.need_disk_snapshot
+      for inst in local.instances : inst.key => inst
+      if var.need_attached_disk && var.need_disk_snapshot
   }
   name   = "${google_compute_disk.nodes_disk[each.value.key].name}-policy"
   region = each.value.region
@@ -104,13 +104,8 @@ resource "google_compute_resource_policy" "disks_snapshot" {
 }
 resource "google_compute_disk_resource_policy_attachment" "snapshots_attachment" {
   for_each = {
-      for el in local.instance_regions : el.key => {
-          key     = el.key
-          region  = el.region.name
-          # result[0] because result_count returns 1 el-array
-          zone    = var.use_increment_zone ? local.instance_zones[el.key].zones[el.key % length(local.instance_zones[el.key].zones)] : random_shuffle.instances_zones[el.key].result[0]
-      }
-      if var.need_disk_snapshot
+      for inst in local.instances : inst.key => inst
+      if var.need_attached_disk && var.need_disk_snapshot
   }
   name = google_compute_resource_policy.disks_snapshot[each.value.key].name
   disk = google_compute_disk.nodes_disk[each.value.key].name
@@ -120,13 +115,7 @@ resource "google_compute_disk_resource_policy_attachment" "snapshots_attachment"
 # INSTANCES
 resource "google_compute_instance" "instances" {
   for_each = {
-    for el in local.instance_regions : el.key => {
-      real_index    = el.key + 1
-      region        = el.region.name
-      region_short  = el.region.short
-      # result[0] because result_count returns 1 el-array
-      zone          = var.use_increment_zone ? local.instance_zones[el.key].zones[el.key % length(local.instance_zones[el.key].zones)] : random_shuffle.instances_zones[el.key].result[0]
-    }
+    for inst in local.instances : inst.key => inst
   }
   name                      = "${var.env}-${var.project}-gcp${each.value.region_short}${each.value.zone}-${var.name}${format("%.2d", each.value.real_index)}"
   hostname                  = "${var.env}-${var.project}-gcp${each.value.region_short}${each.value.zone}-${var.name}${format("%.2d", each.value.real_index)}.${var.domain}"

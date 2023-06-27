@@ -31,14 +31,15 @@ locals {
   disks = flatten([
     for k, inst in google_compute_instance.instances : [
       for disk in var.attached_disks : {
-        inst_key = k
-        name     = "${disk.name}-${inst.instance_id}"
-        key      = "${k}${index(var.attached_disks, disk) + 1}"
-        inst_id  = inst.instance_id
-        zone     = inst.zone
-        region   = regex("\\w+-\\w+", inst.zone)
-        type     = disk.type
-        size     = disk.size
+        inst_key  = k
+        orig_name = disk.name
+        name      = "${disk.name}-${inst.instance_id}"
+        key       = "${k}${index(var.attached_disks, disk) + 1}"
+        inst_id   = inst.instance_id
+        zone      = inst.zone
+        region    = regex("\\w+-\\w+", inst.zone)
+        type      = disk.type
+        size      = disk.size
       }
     ]
   ])
@@ -91,8 +92,9 @@ resource "google_compute_attached_disk" "nodes_disk_attachment" {
       for disk in local.disks : disk.key => disk
       if var.need_attached_disk
   }
-  disk     = google_compute_disk.nodes_disk[each.value.key].self_link
-  instance = google_compute_instance.instances[each.value.inst_key].self_link
+  disk        = google_compute_disk.nodes_disk[each.value.key].self_link
+  instance    = google_compute_instance.instances[each.value.inst_key].self_link
+  device_name = each.value.orig_name
 }
 # Snapshots for attached disks
 resource "google_compute_resource_policy" "disks_snapshot" {

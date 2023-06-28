@@ -12,7 +12,7 @@ Allows to create number of compute instances distributed randomly (random_shuffl
   label "instance_number" зарезервирован и проставляется автоматически = порядковый номер наливаемой VM
 - image_os - образ для ОС диска (можно не указывать, по умолчанию наливается debian 11)
 - need_attached_disk - true для подключения дополнительного диска к каждой машине
-- attached_disk - параметры дополнительно подключаемого диска
+- attached_disks - параметры дополнительно подключаемых дисков
 - need_disk_snapshot - true для регулярного бэкапирования диска
 - need_external_ip (опционально, по-умолчанию false) - зарегать ephemeral external ip для тачки
 - disk_snapshot - параметры для бэкапирования дополнительно подключаемого диска (по умолчанию days_in_cycle = 1, start_time = "23:00", max_retention_days = 14)
@@ -41,7 +41,7 @@ module "compute_instance_regional" {
   }
 }
 ```
-### Example 2 with disks and custom timeouts
+### Example 2 with disk and custom timeouts
 ```
 module "compute_instance_regional" {
   source = "git@gitlab.fbs-d.com:terraform/modules/compute-instance-regional.git"
@@ -60,11 +60,11 @@ module "compute_instance_regional" {
   }
 
   need_attached_disk = true
-  attached_disk = {
+  attached_disks = [{
       name = "vault-storage"
       type = "pd-ssd"
       size = "200"
-  }
+  }]
 
   timeouts = {
       create = "1m"
@@ -112,7 +112,7 @@ module "compute_instance_regional" {
   shutdown_script_path = "scripts/shutdown.sh"
 }
 ```
-### Example 4 with disks and backup snapshots
+### Example 4 with disk and backup snapshots
 ```
 module "compute_instance_regional" {
   source = "git@gitlab.fbs-d.com:terraform/modules/compute-instance-regional.git"
@@ -132,14 +132,14 @@ module "compute_instance_regional" {
 
   need_attached_disk = true
   need_disk_snapshot = true
-  attached_disk = {
+  attached_disks = [{
       name = "vault-storage"
       type = "pd-ssd"
       size = "200"
-  }
+  }]
 }
 ```
-### Example 5 with disks and backup snapshots on custom schedule (each day during 14 days executed on 23:00)
+### Example 5 with disk and backup snapshots on custom schedule (each day during 14 days executed on 23:00)
 ```
 module "compute_instance_regional" {
   source = "git@gitlab.fbs-d.com:terraform/modules/compute-instance-regional.git"
@@ -159,11 +159,11 @@ module "compute_instance_regional" {
 
   need_attached_disk = true
   need_disk_snapshot = true
-  attached_disk = {
+  attached_disks = [{
       name = "vault-storage"
       type = "pd-ssd"
       size = "200"
-  }
+  }]
   disk_snapshot = {
       days_in_cycle = 1
       start_time = "23:00"
@@ -223,6 +223,36 @@ module "compute_instance_regional" {
   }
 
   use_increment_zone = true
+}
+```
+### Example 8 with several disks
+```
+module "compute_instance_regional" {
+  source = "git@gitlab.fbs-d.com:terraform/modules/compute-instance-regional.git"
+
+  env = "test"
+  project = "gl"
+  name = "vault"
+  domain = "test.mx"
+  instance_count = 3
+
+  machine_type = "e2-highcpu-2"
+  tags = ["test-vault"]
+  labels = {
+    app = "vault"
+    env = "test"
+  }
+
+  need_attached_disk = true
+  attached_disks = [{
+      name = "vault-storage"
+      type = "pd-ssd"
+      size = "50"
+  }, {
+      name = "os-storage"
+      type = "pd-ssd"
+      size = "100"
+  }]
 }
 ```
 

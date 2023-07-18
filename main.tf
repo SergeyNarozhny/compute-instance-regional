@@ -124,6 +124,7 @@ resource "google_compute_instance" "instances" {
   machine_type              = var.machine_type
   tags                      = var.tags
   allow_stopping_for_update = var.allow_stopping_for_update
+  desired_status            = var.desired_status
 
   boot_disk {
     initialize_params {

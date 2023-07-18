@@ -81,6 +81,10 @@ variable "boot_disk_size" {
     type = number
     default = 20
 }
+variable "desired_status" {
+    type = string
+    default = "RUNNING"
+}
 
 variable "need_attached_disk" {
     type = bool

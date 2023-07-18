@@ -72,7 +72,7 @@ resource "google_compute_disk" "nodes_disk" {
   type = var.attached_disk.type
   size = var.attached_disk.size
 }
-resource "google_compute_attached_disk" "disks_attachment" {
+resource "google_compute_attached_disk" "nodes_disk_attachment" {
   for_each = {
       for inst in local.instances : inst.key => inst
       if var.need_attached_disk
@@ -80,7 +80,6 @@ resource "google_compute_attached_disk" "disks_attachment" {
   disk     = google_compute_disk.nodes_disk[each.value.key].self_link
   instance = google_compute_instance.instances[each.value.key].self_link
 }
-
 # Snapshots for attached disks
 resource "google_compute_resource_policy" "disks_snapshot" {
   for_each = {
@@ -112,6 +111,49 @@ resource "google_compute_disk_resource_policy_attachment" "snapshots_attachment"
   zone = "${each.value.region}-${each.value.zone}"
 }
 
+# BOOT disks
+resource "google_compute_disk" "boot_disks" {
+  for_each = {
+      for inst in local.instances : inst.key => inst
+  }
+  name    = "bootdisk-${var.env}-${var.project}-gcp${each.value.region_short}${each.value.zone}-${var.name}${format("%.2d", each.value.real_index)}"
+  zone    = "${each.value.region}-${each.value.zone}"
+  image   = var.image_os
+  type    = var.boot_disk_type
+  size    = var.boot_disk_size
+}
+# Snapshots for boot disks
+resource "google_compute_resource_policy" "boot_disks_snapshot" {
+  for_each = {
+      for inst in local.instances : inst.key => inst
+      if var.need_disk_snapshot
+  }
+  name   = "${google_compute_disk.boot_disks[each.value.key].name}-policy"
+  region = each.value.region
+
+  snapshot_schedule_policy {
+    schedule {
+      daily_schedule {
+        days_in_cycle     = var.disk_snapshot.days_in_cycle
+        start_time        = var.disk_snapshot.start_time
+      }
+    }
+    retention_policy {
+      max_retention_days    = var.disk_snapshot.max_retention_days
+      on_source_disk_delete = "KEEP_AUTO_SNAPSHOTS"
+    }
+  }
+}
+resource "google_compute_disk_resource_policy_attachment" "boot_snapshots_attachment" {
+  for_each = {
+      for inst in local.instances : inst.key => inst
+      if var.need_disk_snapshot
+  }
+  name = google_compute_resource_policy.boot_disks_snapshot[each.value.key].name
+  disk = google_compute_disk.boot_disks[each.value.key].name
+  zone = "${each.value.region}-${each.value.zone}"
+}
+
 # INSTANCES
 resource "google_compute_instance" "instances" {
   for_each = {
@@ -127,11 +169,7 @@ resource "google_compute_instance" "instances" {
   desired_status            = var.desired_status
 
   boot_disk {
-    initialize_params {
-      image = var.image_os
-      type = var.boot_disk_type
-      size = var.boot_disk_size
-    }
+    source = google_compute_disk.boot_disks[each.value.key].self_link
   }
 
   network_interface {

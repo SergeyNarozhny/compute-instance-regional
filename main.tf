@@ -69,6 +69,16 @@ data "google_compute_subnetwork" "custom_subnetworks" {
   region = each.value.region
 }
 
+# Generate random postfix for each node
+resource "random_string" "random_postfix" {
+  for_each = {
+      for inst in local.instances : inst.key => inst
+  }
+  length    = var.random_postfix_length
+  lower     = true
+  upper     = false
+  special   = false
+}
 # Generate random zone for each node
 resource "random_shuffle" "instances_zones" {
   for_each      = local.instance_zones
@@ -170,6 +180,17 @@ resource "google_compute_disk_resource_policy_attachment" "boot_snapshots_attach
   zone = "${each.value.region}-${each.value.zone}"
 }
 
+# IP address
+resource "google_compute_address" "instances_external_ip" {
+  for_each = {
+      for inst in local.instances : inst.key => inst
+      if var.need_external_ip && var.is_external_ip_static
+  }
+  name = "static-ip-for-${random_string.random_postfix[each.value.key].result}"
+  region       = each.value.region
+  address_type = "EXTERNAL"
+}
+
 # INSTANCES
 resource "google_compute_instance" "instances" {
   for_each = {
@@ -195,12 +216,14 @@ resource "google_compute_instance" "instances" {
       for_each = var.need_external_ip ? [1] : []
       content {
         network_tier = "PREMIUM"
+        nat_ip = var.is_external_ip_static ? google_compute_address.instances_external_ip[each.value.key].address : null
       }
     }
   }
 
   labels = merge(var.labels, {
     instance_number = each.value.real_index
+    postfix = random_string.random_postfix[each.value.key].result
   })
 
   lifecycle {

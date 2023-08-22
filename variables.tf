@@ -1,3 +1,8 @@
+variable "random_postfix_length" {
+  type    = string
+  default = 16
+}
+
 variable "compute_regions" {
   type = list(object({
     name = string
@@ -115,6 +120,10 @@ variable "disk_snapshot" {
     }
 }
 variable "need_external_ip" {
+    type = bool
+    default = false
+}
+variable "is_external_ip_static" {
     type = bool
     default = false
 }

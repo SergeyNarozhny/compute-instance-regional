@@ -15,6 +15,7 @@ Allows to create number of compute instances distributed randomly (random_shuffl
 - attached_disks - параметры дополнительно подключаемых дисков
 - need_disk_snapshot - true для регулярного бэкапирования диска
 - need_external_ip (опционально, по-умолчанию false) - зарегать ephemeral external ip для тачки
+- is_external_ip_static (опционально, по-умолчанию false) - зарегать статический ip в качестве external (вместо ephemeral), используется совместно с включенной need_external_ip
 - disk_snapshot - параметры для бэкапирования дополнительно подключаемого диска (по умолчанию days_in_cycle = 1, start_time = "23:00", max_retention_days = 14)
 - timeouts (create, update, delete = "10m") - таймауты на операции инстанса (создание, обновление, удаление)
 - shutdown_sleep (по-умолчанию = 20) - время в cекундах, которое используется как множитель для команды sleep при любой перезагрузке/выключении VM
@@ -254,6 +255,27 @@ module "compute_instance_regional" {
       type = "pd-ssd"
       size = "100"
   }]
+}
+```
+### Example 9 with external static ip
+```
+module "compute_instance_regional" {
+  source = "git@gitlab.fbs-d.com:terraform/modules/compute-instance-regional.git"
+
+  env = "test"
+  project = "gl"
+  name = "vault"
+  domain = "test.mx"
+  instance_count = 3
+  need_external_ip = true
+  is_external_ip_static = true
+
+  machine_type = "e2-highcpu-2"
+  tags = ["test-vault"]
+  labels = {
+    app = "vault"
+    env = "test"
+  }
 }
 ```
 

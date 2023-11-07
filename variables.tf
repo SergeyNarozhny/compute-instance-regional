@@ -58,6 +58,7 @@ variable "labels" {
         instance = optional(string)
         service = optional(string)
         group = optional(string)
+        team = optional(string)
     })
     default = null
 }
